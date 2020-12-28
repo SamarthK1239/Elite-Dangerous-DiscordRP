@@ -4,6 +4,8 @@ import glob
 from pypresence import Presence
 import time
 
+list_of_files = glob.glob('C:/Users/*your username here*/Saved Games/Frontier Developments/Elite Dangerous/*.log')
+
 client_id = 793098629413208075
 RPC = Presence(client_id)
 RPC.connect()
@@ -64,7 +66,7 @@ def RichPresence(latest_file):
                 CurrentState = "Dropped supercruise at " + Body + "(" + BodyType + ")" + " in " + System
     return CurrentState
 
-list_of_files = glob.glob('C:/Users/samar/Saved Games/Frontier Developments/Elite Dangerous/*.log') # * means all if need specific format then *.csv
+
 latest_file = max(list_of_files, key=os.path.getctime)
 print(latest_file)
 
