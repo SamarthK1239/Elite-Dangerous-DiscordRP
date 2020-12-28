@@ -4,30 +4,38 @@ import glob
 from pypresence import Presence
 import time
 
-list_of_files = glob.glob('C:/Users/*your username here*/Saved Games/Frontier Developments/Elite Dangerous/*.log')
+list_of_files = glob.glob('C:/Users/samar/Saved Games/Frontier Developments/Elite Dangerous/*.log')
 
 client_id = 793098629413208075
 RPC = Presence(client_id)
 RPC.connect()
 
-def RichPresence(latest_file):
-    CurrentState = ""
+def RichPresence(latest_file, CurrentState1):
     f = open(latest_file)
     with f as read_obj:
         for line in read_obj:
             if "StartJump" in line:
                 Destination = line.split(",")
-                StarSystem = Destination[3]
-                StarSystem = StarSystem[15: (len(StarSystem) - 1):]
-                #print("Jumping to " + StarSystem)
-                CurrentState = "Jumping to " + StarSystem
+                x = len(Destination)
+                if(x == 4):
+                    StarSystem = Destination[3]
+                    StarSystem = StarSystem[10: (len(StarSystem) - 1):]
+                elif(x == 3):
+                    StarSystem = Destination[2]
+                    StarSystem = StarSystem[10: (len(StarSystem) - 1):]
+                    #print("Jumping to " + StarSystem)
+                CurrentState = "Jumping from " + StarSystem
+                
                     
             elif "FSDJump" in line:
                 Destination = line.split(",")
                 StarSystem = Destination[2]
                 StarSystem = StarSystem[15: (len(StarSystem) - 1):]
                 #print("Jumped to " + StarSystem)
-                CurrentState = "Jumped to " + StarSystem
+                if "Jumped" or "Supercruise" in CurrentState1:
+                    CurrentState = "Supercruise in " + StarSystem
+                else:
+                    CurrentState = "Jumped to " + StarSystem
             elif "DockingGranted" in line:
                 Details = line.split(",")
                 StationName = Details[4]
@@ -49,7 +57,7 @@ def RichPresence(latest_file):
             elif "SupercruiseEntry" in line:
                 Details = line.split(",")
                 System = Details[2]
-                System = System[14: (len(System) - 1):]
+                System = System[15: (len(System) - 1):]
                 #print("Supercruise in " + System)
                 CurrentState = "Supercruise in " + System
             elif "SupercruiseExit" in line:
@@ -62,8 +70,11 @@ def RichPresence(latest_file):
                 BodyType = BodyType[13: (len(BodyType) - 4)]
                 if(BodyType == "Station"):
                     BodyType = "Starport"
-                #print("Dropped supercruise at " + Body + "(" + BodyType + ")" + " in " + System)
-                CurrentState = "Dropped supercruise at " + Body + "(" + BodyType + ")" + " in " + System
+                if "supercruise" in CurrentState1:
+                    CurrentState = "In Space near " + Body + " (" + BodyType + ")"
+                else:
+                    #print("Dropped supercruise at " + Body + "(" + BodyType + ")" + " in " + System)
+                    CurrentState = "Dropped supercruise at " + Body + " (" + BodyType + ")" + " in " + System
     return CurrentState
 
 
@@ -80,11 +91,13 @@ with f as read_obj:
             GameMode = Details[12]
             GameMode = "Playing " + GameMode[13: (len(GameMode) - 1):]
             print(GameMode)
-            
+CurrentState1 = ""            
 f = open(latest_file)
 num_lines = sum(1 for line in f)
 while True:
-    CurrentState = RichPresence(latest_file)
+    CurrentState = RichPresence(latest_file, CurrentState1)
+    CurrentState1 = CurrentState
+    print(CurrentState1)
     RPC.update(state=GameMode, details=CurrentState, large_image="logo", start=epoch)
     time.sleep(15)
     
